@@ -18,9 +18,11 @@
     <div class="container">
         
         <div id="pin-input">
-            <label for="pin">Enter PIN:</label>
-            <input type="password" id="pin" name="pin">
-            <button type="button" onclick="checkPin()">Submit</button>
+            <form id="pin-form" onsubmit="event.preventDefault(); checkPin();">
+                <label for="pin">Enter PIN:</label>
+                <input type="password" id="pin" name="pin" autofocus>
+                <button type="submit">Submit</button>
+            </form>
         </div>
      <div id="rvu-summary-content">
         <div class="header-bar">
