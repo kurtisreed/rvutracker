@@ -5,7 +5,7 @@
 // To generate a new hash for your PIN/password, run generate_hash.php
 // Then copy the generated hash here
 
-// Example hash (for PIN "1640" - CHANGE THIS!)
+
 define('AUTH_PIN_HASH', '$2y$10$abcdefghijklmnopqrstuO8X7KQZCCzGQZCCzGQZCCzGQZCCzGQZCCu');
 
 // Session configuration

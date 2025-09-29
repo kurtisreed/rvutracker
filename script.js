@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.text())
         .then(data => {
-            console.log(data);
+            
             document.getElementById('mohs-result').innerHTML = data;
             clearForm(); // Clear the form fields
             document.getElementById('name').focus(); // Focus the Name field after submission
@@ -139,7 +139,7 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('get_rvus.php')
             .then(response => response.json())
             .then(data => {
-                console.log(data);
+                
 
                 const rvusMultiplier = 73; // Multiplier for RVUs to calculate income
                 const income = {

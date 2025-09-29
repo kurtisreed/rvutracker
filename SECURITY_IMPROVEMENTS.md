@@ -9,7 +9,7 @@ This document outlines the security enhancements made to the RVU Tracker applica
 - Credentials exposed in multiple locations
 
 ### 2. ❌ Weak Authentication
-- Plain text PIN stored in code (`$correct_pin = "1640"`)
+- Plain text PIN stored in code 
 - No session management
 - No timeout mechanism
 - Vulnerable to brute force attacks
