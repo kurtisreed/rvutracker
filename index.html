@@ -22,12 +22,15 @@
             <input type="password" id="pin" name="pin">
             <button type="button" onclick="checkPin()">Submit</button>
         </div>
-     <div id="rvu-summary-content">   
-        <div class="tabs">
-            <button class="tab-button active" data-tab="enter-codes">RVU Code Entry</button>
-            <button class="tab-button" data-tab="summary">RVU Summary</button>
-            <button class="tab-button" data-tab="mohs-data-entry">Mohs Data Entry</button>
-            <button class="tab-button" data-tab="mohs-summary">Mohs Summary</button>
+     <div id="rvu-summary-content">
+        <div class="header-bar">
+            <div class="tabs">
+                <button class="tab-button active" data-tab="enter-codes">RVU Code Entry</button>
+                <button class="tab-button" data-tab="summary">RVU Summary</button>
+                <button class="tab-button" data-tab="mohs-data-entry">Mohs Data Entry</button>
+                <button class="tab-button" data-tab="mohs-summary">Mohs Summary</button>
+            </div>
+            <button id="logoutButton" class="logout-button">Logout</button>
         </div>
         <div class="tab-content active" id="enter-codes">
             <h1>RVU Code Entry</h1>

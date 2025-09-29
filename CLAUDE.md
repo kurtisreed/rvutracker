@@ -82,11 +82,37 @@ The application organizes codes into:
 - Destruction (17262, 17263, 17272, 17281, 17282)
 - Clinic (11102-11105, 17000, 17003, 17004, 17110, 88331, 88305, 11900, 11901, 11200)
 
-## Security Notes
+## Security Implementation
 
-- **Database credentials are hardcoded** in all PHP files (username: `kbr37_1`, password: `dbuser1`)
-- **SQL injection vulnerabilities** exist in several files (e.g., `save_data.php:20`, `submit_mohs.php:31`) using string interpolation instead of prepared statements
-- PIN verification is done via `verify_pin.php` but the actual PIN value is not visible in client code
+### Authentication System
+- **Session-based authentication** with `auth_check.php` middleware
+- **Password hashing** using bcrypt (`password_hash`/`password_verify`)
+- **Session timeout** configurable in `auth_config.php` (default: 1 hour)
+- **Session regeneration** on login to prevent session fixation attacks
+- **Brute force protection** with 1-second delay on failed login attempts
+- Failed login attempts are logged with IP addresses
+
+### Database Security
+- **Centralized connection** via `db_connect.php`
+- **Prepared statements** used in `lookup.php`, `save_data.php`, and `submit_mohs.php`
+- UTF-8 charset configured to prevent encoding issues
+- Database credentials stored in `db_connect.php` (not in version control)
+
+### Configuration Files (Not in Git)
+- `db_connect.php` - Database credentials
+- `auth_config.php` - Hashed PIN and session settings
+- `generate_hash.php` - Utility to generate PIN hashes (should be deleted after use)
+
+### Protected Endpoints
+All PHP endpoints require authentication via `require_once 'auth_check.php'`:
+- lookup.php, save_data.php, get_rvus.php
+- submit_mohs.php, getRecords.php, get_mohs_data.php
+- delete_last_entry.php, delete_last_Mohs_entry.php
+- getCumulativeMohsData.php, getDataForIncome.php, get_repair_data.php, get_income.php
+
+### Logout
+- `logout.php` - Properly destroys sessions and cookies
+- Frontend has logout button in header bar
 
 ## Development Workflow
 

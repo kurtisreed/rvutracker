@@ -1,4 +1,27 @@
 document.addEventListener('DOMContentLoaded', function() {
+    // Logout functionality
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', function() {
+            if (confirm('Are you sure you want to logout?')) {
+                fetch('logout.php', {
+                    method: 'POST'
+                })
+                .then(response => response.text())
+                .then(data => {
+                    if (data === 'success') {
+                        // Redirect to reload page and show login
+                        window.location.reload();
+                    }
+                })
+                .catch(error => {
+                    console.error('Logout error:', error);
+                    alert('Error logging out. Please try again.');
+                });
+            }
+        });
+    }
+
     // Tab switching functionality
     document.querySelectorAll('.tab-button').forEach(button => {
         button.addEventListener('click', function() {

@@ -1,6 +1,8 @@
-# Database configuration
+# Database and authentication configuration
 db_connect.php
+auth_config.php
 config.php
+generate_hash.php
 
 # Environment files
 .env
