@@ -35,10 +35,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (button.dataset.tab === 'summary') {
                 updateSummaryTable();
+                loadIncomeCumulativeChart();
             }
-            
+
             if (button.dataset.tab === 'mohs-summary') {
                 updateMohsSummaryTable();
+                loadMohsCumulativeChart();
+                loadRepairRollingChart();
             }
             
             if (button.dataset.tab === 'mohs-data-entry') {
@@ -683,10 +686,11 @@ function initializeArray(size, initialValue = null) {
     return Array.from({ length: size }, () => initialValue);
 }
 
-// Fetch the data from the PHP file
-fetch('getCumulativeMohsData.php')
-    .then(response => response.json()) // Parse JSON response
-    .then(data => {
+// Function to load Mohs cumulative chart
+function loadMohsCumulativeChart() {
+    fetch('getCumulativeMohsData.php')
+        .then(response => response.json())
+        .then(data => {
         // Initialize arrays for cumulative counts for 365 days
         let cumulativeCountsThisYear = initializeArray(365);
         let cumulativeCountsLastYear = initializeArray(365);
@@ -757,13 +761,14 @@ fetch('getCumulativeMohsData.php')
             }
         });
     })
-    .catch(error => console.error('Error fetching data:', error));
-    
-    
-// Fetch the data from the PHP file
-fetch('getDataForIncome.php')
-    .then(response => response.json()) // Parse JSON response
-    .then(data => {
+    .catch(error => console.error('Error fetching cumulative Mohs data:', error));
+}
+
+// Function to load income cumulative chart
+function loadIncomeCumulativeChart() {
+    fetch('getDataForIncome.php')
+        .then(response => response.json())
+        .then(data => {
         // Initialize arrays for cumulative income for 365 days
         let cumulativeIncomeThisYear = initializeArray(365);
         let cumulativeIncomeLastYear = initializeArray(365);
@@ -834,15 +839,12 @@ fetch('getDataForIncome.php')
             }
         });
     })
-    .catch(error => console.error('Error fetching data:', error));    
-    
-    
-    
-    
-    
-// repair rolling chart
+    .catch(error => console.error('Error fetching income data:', error));
+}
 
-const rollingWindow = 200;
+// Function to load repair rolling chart
+function loadRepairRollingChart() {
+    const rollingWindow = 200;
 
 // Function to calculate rolling proportions
 function calculateRollingProportions(data, windowSize) {
@@ -928,8 +930,9 @@ fetch('get_repair_data.php')
         });
     });
 
-// Function to generate random colors for lines
-function getRandomColor() {
-    return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+    // Function to generate random colors for lines
+    function getRandomColor() {
+        return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+    }
 }
 
