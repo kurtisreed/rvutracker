@@ -1,0 +1,237 @@
+/* General styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #d3eafc;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h2 {
+    font-size: 18px;
+    margin-bottom: 1px;
+}
+
+/* Form styling */
+form {
+    margin-bottom: 10px;
+}
+
+.button-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1px;
+    margin-bottom: 10px;
+}
+
+.button-group button {
+    display: flex;
+
+    align-items: center;
+    background-color: #f9f9f9;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.button-group button:hover {
+    background-color: #d3eafc;
+}
+
+input[type="text"], input[type="date"], select, textarea {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+    width: 100%;
+}
+
+textarea {
+    resize: vertical;
+    height: 80px;
+}
+
+button {
+    padding: 10px;
+    background: none;
+    color: #007bff;
+    border: none;
+    border-radius: 0px;
+    font-size: 16px;
+    cursor: pointer;
+    text-align: center;
+    margin-top: 0px;
+}
+
+button:hover {
+    background-color: #d3eafc;
+}
+
+#codeTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+#codeTable th, #codeTable td {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.small-input {
+    width: 50px; /* Adjust the width as needed */
+    padding: 5px; /* Adjust the padding as needed */
+    text-align: center; /* Ensure text is aligned to the right */
+}
+
+
+tfoot td {
+    font-weight: bold;
+    text-align: right;
+}
+
+.buttons-container {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+}
+
+.right-button {
+    margin-left: auto;
+}
+
+
+
+/* Tabs styling */
+.tabs {
+    display: flex;
+    border-bottom: 1px solid #ccc;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    background: none;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 0px;
+    cursor: pointer;
+    font-size: 16px;
+    outline: none;
+    transition: background-color 0.3s, color 0.3s;
+    color: #007bff; /* Set default text color */
+}
+
+.tab-button.active {
+    border-bottom: 3px solid #007bff;
+    color: #007bff;
+}
+
+.tab-button:hover {
+    background-color: #d3eafc; /* Light blue background on hover */
+    color: #007bff; /* Text color on hover */
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Summary table styling */
+.summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.summary-table th, .summary-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.summary-table th {
+    background-color: #f8f8f8;
+    font-weight: bold;
+}
+
+.summary-table th:first-child {
+    text-align: left;
+}
+
+
+/* Form and table styling */
+form {
+    margin-bottom: 20px;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+}
+
+.form-group {
+    width: 48%;
+    margin-bottom: 15px;
+}
+
+form label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+form input[type="text"],
+form input[type="date"],
+form select {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+form button {
+    display: block;
+
+    padding: 10px;
+    background: none;
+    color: #007bff;
+    border: none;
+    border-radius: 0px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+form button:hover {
+    background-color: #d3eafc;
+}
+
+#diagnosis-other,
+#repair-other,
+#referral-other {
+    margin-top: 5px;
+}
+
+#mohs-result #result{
+    margin-top: 20px;
+    font-size: 16px;
+    color: #007bff;
+}

@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RVU Tracker</title>
+    <link rel="icon" href="/rvutracker/favicon.ico" sizes="any">
+    <link rel="stylesheet" href="styles.css">
+        <style>
+        #rvu-summary-content {
+            display: none;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3"></script>
+</head>
+<body>
+    <div class="container">
+        
+        <div id="pin-input">
+            <label for="pin">Enter PIN:</label>
+            <input type="password" id="pin" name="pin">
+            <button type="button" onclick="checkPin()">Submit</button>
+        </div>
+     <div id="rvu-summary-content">   
+        <div class="tabs">
+            <button class="tab-button active" data-tab="enter-codes">RVU Code Entry</button>
+            <button class="tab-button" data-tab="summary">RVU Summary</button>
+            <button class="tab-button" data-tab="mohs-data-entry">Mohs Data Entry</button>
+            <button class="tab-button" data-tab="mohs-summary">Mohs Summary</button>
+        </div>
+        <div class="tab-content active" id="enter-codes">
+            <h1>RVU Code Entry</h1>
+            <form id="codeForm">
+                <h2>E&M</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="99212">99212</button>
+                        <button type="button" class="code-button" data-code="99213">99213</button>
+                        <button type="button" class="code-button" data-code="99214">99214</button>
+                        <button type="button" class="code-button" data-code="99203">99203</button>
+                        <button type="button" class="code-button" data-code="99204">99204</button>
+                    </div>
+                <h2>Mohs</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="17311">17311</button>
+                        <button type="button" class="code-button" data-code="17312">17312</button>
+                        <button type="button" class="code-button" data-code="17313">17313</button>
+                        <button type="button" class="code-button" data-code="17314">17314</button>
+                        <button type="button" class="code-button" data-code="17315">17315</button>
+                    </div>                    
+                <h2>Primary Repair</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="13132">13132</button>
+                        <button type="button" class="code-button" data-code="13133">13133</button>
+                        <button type="button" class="code-button" data-code="13151">13151</button>
+                        <button type="button" class="code-button" data-code="13152">13152</button>
+                        <button type="button" class="code-button" data-code="13121">13121</button>
+                        <button type="button" class="code-button" data-code="12032">12032</button>
+                        <button type="button" class="code-button" data-code="12034">12034</button>
+                        <button type="button" class="code-button" data-code="12042">12042</button>
+                        <button type="button" class="code-button" data-code="12052">12052</button>
+                    </div>
+                <h2>Flaps and Grafts</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="14040">14040</button>
+                        <button type="button" class="code-button" data-code="14041">14041</button>
+                        <button type="button" class="code-button" data-code="14060">14060</button>
+                        <button type="button" class="code-button" data-code="14061">14061</button>
+                        <button type="button" class="code-button" data-code="14301">14301</button>
+                        <button type="button" class="code-button" data-code="15260">15260</button>
+                        <button type="button" class="code-button" data-code="15240">15240</button>
+
+                    </div>
+                <h2>Destruction</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="17262">17262</button>
+                        <button type="button" class="code-button" data-code="17263">17263</button>
+                        <button type="button" class="code-button" data-code="17272">17272</button>
+                        <button type="button" class="code-button" data-code="17281">17281</button>
+                        <button type="button" class="code-button" data-code="17282">17282</button>
+
+                    </div>
+                <h2>Clinic</h2>
+                    <div class="button-group">
+                        <button type="button" class="code-button" data-code="11102">11102</button>
+                        <button type="button" class="code-button" data-code="11103">11103</button>
+                        <button type="button" class="code-button" data-code="11104">11104</button>
+                        <button type="button" class="code-button" data-code="11105">11105</button>                        
+                        <button type="button" class="code-button" data-code="17000">17000</button>
+                        <button type="button" class="code-button" data-code="17003">17003</button>
+                        <button type="button" class="code-button" data-code="17004">17004</button>
+                        <button type="button" class="code-button" data-code="17110">17110</button>                        
+                        <button type="button" class="code-button" data-code="88331">88331</button>
+                        <button type="button" class="code-button" data-code="88305">88305</button>
+                        <button type="button" class="code-button" data-code="11900">11900</button>
+                        <button type="button" class="code-button" data-code="11901">11901</button>
+                        <button type="button" class="code-button" data-code="11200">11200</button>                        
+                    </div>
+
+                <input type="text" id="code" name="code" placeholder="Enter code" required>
+                <button type="submit">Submit</button>
+            </form>
+            <div class="buttons-container">
+                <button id="approveButton">Approve</button>
+                <button id="deleteLastEntryButton" class="right-button">Delete Last Entry</button>
+            </div>
+            <table id="codeTable">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Code</th>
+                        <th>Value</th>
+                        <th>Multiplier</th>
+                        <th>Product</th>
+                        <th>Reduction</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Filled dynamically by JavaScript -->
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="6">Total</td>
+                        <td id="grandTotal">0.00</td>
+                    </tr>
+                </tfoot>
+            </table>
+            <div id="result"></div>
+        </div>
+<div class="tab-content" id="summary">
+    <h1>RVU Summary</h1>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>Today</th>
+                <th>This Week</th>
+                <th>Last Week</th>
+                <th>This Month</th>
+                <th>Last Month</th>
+                <th>This Year</th>
+                <th>Last Year</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>RVUs</th>
+                <td id="today-rvus"></td>
+                <td id="this-week-rvus"></td>
+                <td id="last-week-rvus"></td>
+                <td id="this-month-rvus"></td>
+                <td id="last-month-rvus"></td>
+                <td id="this-year-rvus"></td>
+                <td id="last-year-rvus"></td>
+            </tr>
+            <tr>
+                <th>Income</th>
+                <td id="today-income"></td>
+                <td id="this-week-income"></td>
+                <td id="last-week-income"></td>
+                <td id="this-month-income"></td>
+                <td id="last-month-income"></td>
+                <td id="this-year-income"></td>
+                <td id="last-year-income"></td>
+            </tr>    
+            <tr>
+                <th>Encounters</th>
+                <td id="today-encounters"></td>
+                <td id="this-week-encounters"></td>
+                <td id="last-week-encounters"></td>
+                <td id="this-month-encounters"></td>
+                <td id="last-month-encounters"></td>
+                <td id="this-year-encounters"></td>
+                <td id="last-year-encounters"></td>
+            </tr> 
+            <tr>
+                <th>Mohs first stage</th>
+                <td id="today-code-173"></td>
+                <td id="this-week-code-173"></td>
+                <td id="last-week-code-173"></td>
+                <td id="this-month-code-173"></td>
+                <td id="last-month-code-173"></td>
+                <td id="this-year-code-173"></td>
+                <td id="last-year-code-173"></td>
+            </tr>  
+            <tr>
+                <th>Mohs subsequent stage</th>
+                <td id="today-code-17312"></td>
+                <td id="this-week-code-17312"></td>
+                <td id="last-week-code-17312"></td>
+                <td id="this-month-code-17312"></td>
+                <td id="last-month-code-17312"></td>
+                <td id="this-year-code-17312"></td>
+                <td id="last-year-code-17312"></td>
+            </tr>
+           <tr>
+                <th>Biopsies</th>
+                <td id="today-code-111"></td>
+                <td id="this-week-code-111"></td>
+                <td id="last-week-code-111"></td>
+                <td id="this-month-code-111"></td>
+                <td id="last-month-code-111"></td>
+                <td id="this-year-code-111"></td>
+                <td id="last-year-code-111"></td>
+            </tr>  
+           <tr>
+                <th>Cryo</th>
+                <td id="today-code-cryo"></td>
+                <td id="this-week-code-cryo"></td>
+                <td id="last-week-code-cryo"></td>
+                <td id="this-month-code-cryo"></td>
+                <td id="last-month-code-cryo"></td>
+                <td id="this-year-code-cryo"></td>
+                <td id="last-year-code-cryo"></td>
+            </tr>       
+           <tr>
+                <th>Per Patient</th>
+                <td id="today-per-patient"></td>
+                <td id="this-week-per-patient"></td>
+                <td id="last-week-per-patient"></td>
+                <td id="this-month-per-patient"></td>
+                <td id="last-month-per-patient"></td>
+                <td id="this-year-per-patient"></td>
+                <td id="last-year-per-patient"></td>
+            </tr> 
+           <tr>
+                <th>88305</th>
+                <td id="today-code-88305"></td>
+                <td id="this-week-code-88305"></td>
+                <td id="last-week-code-88305"></td>
+                <td id="this-month-code-88305"></td>
+                <td id="last-month-code-88305"></td>
+                <td id="this-year-code-88305"></td>
+                <td id="last-year-code-88305"></td>
+            </tr>              
+        </tbody>
+    </table>
+    <canvas id="cumulativeIncomeChart" width="400" height="200"></canvas>
+    <canvas id="incomeHistogram" width="400" height="200"></canvas>
+
+</div>
+
+<div class="tab-content" id="mohs-data-entry">
+    <h1>Mohs Data Entry</h1>
+    <form id="mohsForm">
+        <div class="form-row">
+            <div class="form-group">
+                <label for="date">Date:</label>
+                <input type="date" id="date" name="date" required>
+            </div>
+            <div class="form-group">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="site">Site:</label>
+                <input type="text" id="site" name="site">
+            </div>
+            <div class="form-group">
+                <label for="nyu">NYU:</label>
+                <input type="text" id="nyu" name="nyu">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="diagnosis">Diagnosis:</label>
+                <select id="diagnosis" name="diagnosis" required>
+                    <option value="BCC">BCC</option>
+                    <option value="SCC">SCC</option>
+                    <option value="BSCC">BSCC</option>
+                    <option value="AFX">AFX</option>
+                    <option value="Merkel">Merkel</option>
+                    <option value="Sebaceous carcinoma">Sebaceous carcinoma</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="diagnosis-other" name="diagnosis-other" placeholder="Enter diagnosis" style="display:none;">
+            </div>
+            <div class="form-group">
+                <label for="stages">Stages:</label>
+                <input type="text" id="stages" name="stages">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="repair">Repair:</label>
+                <select id="repair" name="repair">
+                    <option value="CLC">CLC</option>
+                    <option value="ILC">ILC</option>
+                    <option value="Flap">Flap</option>
+                    <option value="FTSG">FTSG</option>
+                    <option value="2nd">2nd</option>
+                    <option value="Refer">Refer</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" id="repair-other" name="repair-other" placeholder="Enter repair" style="display:none;">
+            </div>
+            <div class="form-group">
+                <label for="comments">Comments:</label>
+                <input type="text" id="comments" name="comments">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label for="referral">Referral:</label>
+                <select id="referral" name="referral">
+                    <option value="Me">Me</option>
+                    <option value="Amanda">Amanda</option>
+                    <option value="Neelie">Neelie</option>
+                    <option value="Scholes">Scholes</option>
+                    <option value="Olmstead">Olmstead</option>
+                    <option value="Laurel">Laurel</option>
+                    <option value="Stuart">Stuart</option>
+                    <option value="VA">VA</option>
+                    <option value="other">Other</option>
+                </select>
+                <input type="text" value="Other" id="referral-other" name="referral-other" placeholder="Enter referral" style="display:none;">
+            </div>
+          
+            <div class="form-group">
+                <label for="addon">Add/on:</label>
+                <select id="addon" name="addon">
+                    <option value="N">N</option>
+                    <option value="Y">Y</option>
+                </select>
+            </div>
+        </div>  
+            <div class="buttons-container">
+                <button id="approveButton">Approve</button>
+                <button id="deleteLastMohsEntryButton" class="right-button">Delete Last Entry</button>
+            </div>
+        <div id="mohs-result"></div>
+    </form>
+    <button onclick="loadRecords()">Load Most Recent Entries</button>
+<table id="recordsTable">
+
+</table>
+</div>
+        <div class="tab-content" id="mohs-summary">
+            <h1>Mohs Summary</h1>
+    <table class="summary-table">
+        <thead>
+            <tr>
+                <th></th>
+                <th>This Month</th>
+                <th>Last Month</th>
+                <th>This Year</th>
+                <th>Last Year</th>
+                <th>All Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <th>Total</th>
+                <td id="this-month-total"></td>
+                <td id="last-month-total"></td>
+                <td id="this-year-total"></td>
+                <td id="last-year-total"></td>
+                <td id="all-time-total"></td>
+            </tr>
+            <tr>
+                <th>1 Stage</th>
+                <td id="this-month-onestage"></td>
+                <td id="last-month-onestage"></td>
+                <td id="this-year-onestage"></td>
+                <td id="last-year-onestage"></td>
+                <td id="all-time-onestage"></td>
+            </tr>    
+            <tr>
+                <th>Add On</th>
+                <td id="this-month-addon"></td>
+                <td id="last-month-addon"></td>
+                <td id="this-year-addon"></td>
+                <td id="last-year-addon"></td>
+                <td id="all-time-addon"></td>
+            </tr> 
+            <tr>
+                <th>Closures</th>
+            </tr>  
+            <tr>
+                <th>   CLC</th>
+                <td id="this-month-CLC"></td>
+                <td id="last-month-CLC"></td>
+                <td id="this-year-CLC"></td>
+                <td id="last-year-CLC"></td>
+                <td id="all-time-CLC"></td>
+            </tr>
+            <tr>
+                <th>   ILC</th>
+                <td id="this-month-ILC"></td>
+                <td id="last-month-ILC"></td>
+                <td id="this-year-ILC"></td>
+                <td id="last-year-ILC"></td>
+                <td id="all-time-ILC"></td>
+            </tr>            
+           <tr>
+                <th>Flap Closure</th>
+                <td id="this-month-flapclosure"></td>
+                <td id="last-month-flapclosure"></td>
+                <td id="this-year-flapclosure"></td>
+                <td id="last-year-flapclosure"></td>
+                <td id="all-time-flapclosure"></td>
+            </tr>  
+           <tr>
+                <th>FTSG</th>
+                <td id="this-month-FTSG"></td>
+                <td id="last-month-FTSG"></td>
+                <td id="this-year-FTSG"></td>
+                <td id="last-year-FTSG"></td>
+                <td id="all-time-FTSG"></td>
+            </tr>       
+           <tr>
+                <th>2nd Intent</th>
+                <td id="this-month-secondintent"></td>
+                <td id="last-month-secondintent"></td>
+                <td id="this-year-secondintent"></td>
+                <td id="last-year-secondintent"></td>
+                <td id="all-time-secondintent"></td>
+            </tr>
+            <tr>
+                <th>Tumor Type</th>
+            </tr>              
+            <tr>
+                <th>BCC</th>
+                <td id="this-month-BCC"></td>
+                <td id="last-month-BCC"></td>
+                <td id="this-year-BCC"></td>
+                <td id="last-year-BCC"></td>
+                <td id="all-time-BCC"></td>                
+            </tr>   
+            <tr>
+                <th>SCC</th>
+                <td id="this-month-SCC"></td>
+                <td id="last-month-SCC"></td>
+                <td id="this-year-SCC"></td>
+                <td id="last-year-SCC"></td>
+                <td id="all-time-SCC"></td>                
+            </tr>      
+            <tr>
+                <th>Other</th>
+                <td id="this-month-other"></td>
+                <td id="last-month-other"></td>
+                <td id="this-year-other"></td>
+                <td id="last-year-other"></td>
+                <td id="all-time-other"></td>                
+            </tr>     
+            <tr>
+                <th>Referral</th>
+            </tr>              
+            <tr>
+                <th>Me</th>
+                <td id="this-month-me"></td>
+                <td id="last-month-me"></td>
+                <td id="this-year-me"></td>
+                <td id="last-year-me"></td>
+                <td id="all-time-me"></td>                
+            </tr>   
+            <tr>
+                <th>Amanda</th>
+                <td id="this-month-amanda"></td>
+                <td id="last-month-amanda"></td>
+                <td id="this-year-amanda"></td>
+                <td id="last-year-amanda"></td>
+                <td id="all-time-amanda"></td>                
+            </tr>      
+            <tr>
+                <th>Outside</th>
+                <td id="this-month-outside"></td>
+                <td id="last-month-outside"></td>
+                <td id="this-year-outside"></td>
+                <td id="last-year-outside"></td>
+                <td id="all-time-outside"></td>                
+            </tr>              
+        </tbody>
+    </table>
+    
+<canvas id="cumulativeChart" width="400" height="200"></canvas>
+<canvas id="repairChart" width="400" height="200"></canvas>
+
+        </div>
+    </div>
+</div>
+
+    <script src="script.js"></script>
+</body>
+</html>
