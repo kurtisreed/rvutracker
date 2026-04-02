@@ -6,53 +6,52 @@ try {
     $conn = get_db_connection();
 
 function get_rvus($conn, $start_date, $end_date) {
-    $sql = "SELECT SUM(totalrvus) as total_rvus FROM rvudata WHERE DATE(date) BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['total_rvus'] ?? 0;
-    } else {
-        return 0;
-    }
+    $sql = "SELECT SUM(totalrvus) as total_rvus FROM rvudata WHERE DATE(date) BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['total_rvus'] ?? 0;
 }
 
 function get_encounters($conn, $start_date, $end_date) {
-    $sql = "SELECT COUNT(*) as total_encounters FROM rvudata WHERE DATE(date) BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['total_encounters'] ?? 0;
-    } else {
-        return 0;
-    }
+    $sql = "SELECT COUNT(*) as total_encounters FROM rvudata WHERE DATE(date) BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['total_encounters'] ?? 0;
 }
 
 function get_income($conn, $start_date, $end_date) {
-    $sql = "SELECT SUM(totalincome) as total_income FROM rvudata WHERE DATE(date) BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['total_income'] ?? 0;
-    } else {
-        return 0;
-    }
+    $sql = "SELECT SUM(totalincome) as total_income FROM rvudata WHERE DATE(date) BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['total_income'] ?? 0;
 }
 
 function count_code_occurrences($conn, $start_date, $end_date, $codes) {
     $total_count = 0;
     foreach ($codes as $code) {
-        $sql = "SELECT SUM((LENGTH(inputs) - LENGTH(REPLACE(inputs, '$code', ''))) / LENGTH('$code')) AS total_occurrence_count 
-                FROM rvudata 
-                WHERE DATE(date) BETWEEN '$start_date' AND '$end_date' AND inputs LIKE '%$code%'";
-        $result = $conn->query($sql);
-
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            $total_count += $row['total_occurrence_count'] ?? 0;
-        }
+        $like_pattern = '%' . $code . '%';
+        $sql = "SELECT SUM((LENGTH(inputs) - LENGTH(REPLACE(inputs, ?, ''))) / LENGTH(?)) AS total_occurrence_count
+                FROM rvudata
+                WHERE DATE(date) BETWEEN ? AND ? AND inputs LIKE ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("sssss", $code, $code, $start_date, $end_date, $like_pattern);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        $total_count += $row['total_occurrence_count'] ?? 0;
     }
 
     return $total_count;
@@ -92,7 +91,7 @@ $data = array(
     "this_month_income" => get_income($conn, $this_month_start, $this_month_end),
     "last_month_income" => get_income($conn, $last_month_start, $last_month_end),
     "this_year_income" => get_income($conn, $this_year_start, $this_year_end),
-    "last_year_income" => get_income($conn, $last_year_start, $last_year_end),    
+    "last_year_income" => get_income($conn, $last_year_start, $last_year_end),
     "today_encounters" => get_encounters($conn, $today, $today),
     "this_week_encounters" => get_encounters($conn, $this_week_start, $this_week_end),
     "last_week_encounters" => get_encounters($conn, $last_week_start, $last_week_end),
@@ -113,7 +112,7 @@ $data = array(
     "this_month_code_17312" => count_code_occurrences($conn, $this_month_start, $this_month_end, $codes_17312),
     "last_month_code_17312" => count_code_occurrences($conn, $last_month_start, $last_month_end, $codes_17312),
     "this_year_code_17312" => count_code_occurrences($conn, $this_year_start, $this_year_end, $codes_17312),
-    "last_year_code_17312" => count_code_occurrences($conn, $last_year_start, $last_year_end, $codes_17312),   
+    "last_year_code_17312" => count_code_occurrences($conn, $last_year_start, $last_year_end, $codes_17312),
     "today_code_cryo" => count_code_occurrences($conn, $today, $today, $codes_cryo),
     "this_week_code_cryo" => count_code_occurrences($conn, $this_week_start, $this_week_end, $codes_cryo),
     "last_week_code_cryo" => count_code_occurrences($conn, $last_week_start, $last_week_end, $codes_cryo),
@@ -127,7 +126,7 @@ $data = array(
     "this_month_code_88305" => count_code_occurrences($conn, $this_month_start, $this_month_end, $codes_88305),
     "last_month_code_88305" => count_code_occurrences($conn, $last_month_start, $last_month_end, $codes_88305),
     "this_year_code_88305" => count_code_occurrences($conn, $this_year_start, $this_year_end, $codes_88305),
-    "last_year_code_88305" => count_code_occurrences($conn, $last_year_start, $last_year_end, $codes_88305), 
+    "last_year_code_88305" => count_code_occurrences($conn, $last_year_start, $last_year_end, $codes_88305),
     "today_code_111" => count_code_occurrences($conn, $today, $today, $codes_111),
     "this_week_code_111" => count_code_occurrences($conn, $this_week_start, $this_week_end, $codes_111),
     "last_week_code_111" => count_code_occurrences($conn, $last_week_start, $last_week_end, $codes_111),

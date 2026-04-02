@@ -6,137 +6,126 @@ try {
     $conn = get_db_connection();
 
 function get_onestage($conn, $start_date, $end_date) {
-    $sql = "SELECT 
+    $sql = "SELECT
                 (SUM(CASE WHEN stages = '1' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_ones
-              FROM 
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_of_ones'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_of_ones'] ?? 0;
 }
 
 function get_addon($conn, $start_date, $end_date) {
-    $sql = "SELECT 
+    $sql = "SELECT
                 (SUM(CASE WHEN addon = 'Y' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_addon
-              FROM 
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_of_addon'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_of_addon'] ?? 0;
 }
 
 function get_closure($conn, $start_date, $end_date, $type) {
-    $sql = "SELECT 
-                (SUM(CASE WHEN repair = '$type' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_closure
-              FROM 
+    $sql = "SELECT
+                (SUM(CASE WHEN repair = ? THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_closure
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_of_closure'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $type, $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_of_closure'] ?? 0;
 }
 
 function get_diagnosis($conn, $start_date, $end_date, $type) {
-    $sql = "SELECT 
-                (SUM(CASE WHEN diagnosis = '$type' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_diagnosis
-              FROM 
+    $sql = "SELECT
+                (SUM(CASE WHEN diagnosis = ? THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_diagnosis
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_of_diagnosis'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $type, $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_of_diagnosis'] ?? 0;
 }
 
 function other_diagnosis($conn, $start_date, $end_date) {
-    $sql = "SELECT 
+    $sql = "SELECT
                 (SUM(CASE WHEN diagnosis NOT IN ('BCC', 'SCC') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_other
-              FROM  
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_other'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_other'] ?? 0;
 }
 
 function get_referral($conn, $start_date, $end_date, $type) {
-    $sql = "SELECT 
-                (SUM(CASE WHEN referral = '$type' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_diagnosis
-              FROM 
+    $sql = "SELECT
+                (SUM(CASE WHEN referral = ? THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_of_diagnosis
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_of_diagnosis'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sss", $type, $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_of_diagnosis'] ?? 0;
 }
 
 function other_referral($conn, $start_date, $end_date) {
-    $sql = "SELECT 
+    $sql = "SELECT
                 (SUM(CASE WHEN referral NOT IN ('Me', 'Amanda') THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS percentage_other
-              FROM  
+              FROM
                 mohsdata
-              WHERE 
-                date BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['percentage_other'] ?? 0;
-    } else {
-        return 0;
-    }
+              WHERE
+                date BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['percentage_other'] ?? 0;
 }
 
-
-
-
 function get_total($conn, $start_date, $end_date) {
-    $sql = "SELECT COUNT(*) as total_encounters FROM mohsdata WHERE DATE(date) BETWEEN '$start_date' AND '$end_date'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        $row = $result->fetch_assoc();
-        return $row['total_encounters'] ?? 0;
-    } else {
-        return 0;
-    }
+    $sql = "SELECT COUNT(*) as total_encounters FROM mohsdata WHERE DATE(date) BETWEEN ? AND ?";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ss", $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $row = $result->fetch_assoc();
+    $stmt->close();
+    return $row['total_encounters'] ?? 0;
 }
 
 
@@ -211,22 +200,22 @@ $data = array(
     "last_month_me" => get_referral($conn, $last_month_start, $last_month_end, 'Me'),
     "this_year_me" => get_referral($conn, $this_year_start, $this_year_end, 'Me'),
     "last_year_me" => get_referral($conn, $last_year_start, $last_year_end, 'Me'),
-    "all_time_me" => get_referral($conn, $all_time_start, $today, 'Me'), 
+    "all_time_me" => get_referral($conn, $all_time_start, $today, 'Me'),
     "this_month_amanda" => get_referral($conn, $this_month_start, $this_month_end, 'Amanda'),
     "last_month_amanda" => get_referral($conn, $last_month_start, $last_month_end, 'Amanda'),
     "this_year_amanda" => get_referral($conn, $this_year_start, $this_year_end, 'Amanda'),
     "last_year_amanda" => get_referral($conn, $last_year_start, $last_year_end, 'Amanda'),
-    "all_time_amanda" => get_referral($conn, $all_time_start, $today, 'Amanda'),  
+    "all_time_amanda" => get_referral($conn, $all_time_start, $today, 'Amanda'),
     "this_month_outside" => other_referral($conn, $this_month_start, $this_month_end),
     "last_month_outside" => other_referral($conn, $last_month_start, $last_month_end),
     "this_year_outside" => other_referral($conn, $this_year_start, $this_year_end),
     "last_year_outside" => other_referral($conn, $last_year_start, $last_year_end),
-    "all_time_outside" => other_referral($conn, $all_time_start, $today),     
+    "all_time_outside" => other_referral($conn, $all_time_start, $today),
     "this_month_other" => other_diagnosis($conn, $this_month_start, $this_month_end),
     "last_month_other" => other_diagnosis($conn, $last_month_start, $last_month_end),
     "this_year_other" => other_diagnosis($conn, $this_year_start, $this_year_end),
     "last_year_other" => other_diagnosis($conn, $last_year_start, $last_year_end),
-    "all_time_other" => other_diagnosis($conn, $all_time_start, $today)    
+    "all_time_other" => other_diagnosis($conn, $all_time_start, $today)
 );
 
     header('Content-Type: application/json');

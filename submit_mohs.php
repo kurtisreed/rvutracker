@@ -26,15 +26,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $stmt->bind_param("ssssssssss", $date, $name, $site, $nyu, $diagnosis, $stages, $repair, $comments, $referral, $addon);
     
     function get_total($conn, $today) {
-        $sql = "SELECT COUNT(*) as total_encounters FROM mohsdata WHERE DATE(date) = '$today'";
-        $result = $conn->query($sql);
-    
-        if ($result->num_rows > 0) {
-            $row = $result->fetch_assoc();
-            return $row['total_encounters'] ?? 0;
-        } else {
-            return 0;
-        }
+        $sql = "SELECT COUNT(*) as total_encounters FROM mohsdata WHERE DATE(date) = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("s", $today);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $row = $result->fetch_assoc();
+        $stmt->close();
+        return $row['total_encounters'] ?? 0;
     }
 
         if ($stmt->execute()) {

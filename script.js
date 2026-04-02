@@ -58,8 +58,11 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('mohsForm').addEventListener('submit', function(event) {
         event.preventDefault(); // Prevent default form submission behavior
 
+        const submitButton = this.querySelector('[type="submit"]');
+        submitButton.disabled = true;
+
         let formData = new FormData(this);
-        
+
         // Get the user's entered date
         let userDate = document.getElementById('date').value;
 
@@ -78,17 +81,19 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(response => response.text())
         .then(data => {
-            
             document.getElementById('mohs-result').innerHTML = data;
             clearForm(); // Clear the form fields
             document.getElementById('name').focus(); // Focus the Name field after submission
+            loadRecords();
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('mohs-result').innerHTML = 'An error occurred while submitting the form.';
             document.getElementById('name').focus(); // Focus the Name field after error
+        })
+        .finally(() => {
+            submitButton.disabled = false;
         });
-        loadRecords();
     });
 
     function clearForm() {
@@ -350,6 +355,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Event listener for approve button
     document.getElementById('approveButton').addEventListener('click', function() {
+        const approveButton = this;
         let rows = document.querySelectorAll('#codeTable tbody tr');
         let inputsArray = [];
 
@@ -367,7 +373,10 @@ document.addEventListener('DOMContentLoaded', function() {
         let totalrvus = parseFloat(document.getElementById('grandTotal').textContent);
         let totalincome = totalrvus * 73;
 
-        saveToDatabase(inputs, totalrvus, totalincome);
+        approveButton.disabled = true;
+        saveToDatabase(inputs, totalrvus, totalincome).finally(() => {
+            approveButton.disabled = false;
+        });
 
         // Clear the table
         let tableBody = document.querySelector('#codeTable tbody');
@@ -582,7 +591,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Save to database function
     function saveToDatabase(inputs, totalrvus, totalincome) {
-        fetch('save_data.php', {
+        return fetch('save_data.php', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
