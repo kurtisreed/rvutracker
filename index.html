@@ -105,9 +105,15 @@
                 <input type="text" id="code" name="code" placeholder="Enter code" required>
                 <button type="submit">Submit</button>
             </form>
+            <div id="editing-banner" style="display:none;">
+                <span>Editing entry from <strong id="editing-date"></strong></span>
+                <input type="datetime-local" id="edit-date">
+                <button type="button" id="cancelEditButton">Cancel</button>
+            </div>
             <div class="buttons-container">
                 <button id="approveButton">Approve</button>
-                <button id="deleteLastEntryButton" class="right-button">Delete Last Entry</button>
+                <button id="historyButton" type="button" class="right-button">History</button>
+                <button id="deleteLastEntryButton">Delete Last Entry</button>
             </div>
             <table id="codeTable">
                 <thead>
@@ -133,22 +139,63 @@
             </table>
             <div id="result"></div>
         </div>
+
+        <div id="history-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>Recent Entries</h3>
+                    <button id="closeHistoryModal" type="button" class="modal-close">&times;</button>
+                </div>
+                <table id="rvuRecordsTable" class="summary-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Codes</th>
+                            <th>RVUs</th>
+                            <th>Income</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
 <div class="tab-content" id="summary">
     <h1>RVU Summary</h1>
+
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-label">Today</div>
+            <div class="stat-income" id="card-today-income">—</div>
+            <div class="stat-sub"><span id="card-today-rvus">—</span> RVUs &nbsp;·&nbsp; <span id="card-today-enc">—</span> encounters</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-income" id="card-month-income">—</div>
+            <div class="stat-sub"><span id="card-month-rvus">—</span> RVUs &nbsp;·&nbsp; <span id="card-month-enc">—</span> encounters</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">This Year</div>
+            <div class="stat-income" id="card-year-income">—</div>
+            <div class="stat-sub"><span id="card-year-rvus">—</span> RVUs &nbsp;·&nbsp; <span id="card-year-enc">—</span> encounters</div>
+        </div>
+    </div>
+
     <table class="summary-table">
         <thead>
             <tr>
                 <th></th>
                 <th>Today</th>
-                <th>This Week</th>
-                <th>Last Week</th>
-                <th>This Month</th>
-                <th>Last Month</th>
-                <th>This Year</th>
-                <th>Last Year</th>
+                <th>This Wk</th>
+                <th>Last Wk</th>
+                <th>This Mo</th>
+                <th>Last Mo</th>
+                <th>This Yr</th>
+                <th>Last Yr</th>
             </tr>
         </thead>
         <tbody>
+            <tr class="table-section-header"><td colspan="8">Totals</td></tr>
             <tr>
                 <th>RVUs</th>
                 <td id="today-rvus"></td>
@@ -168,7 +215,7 @@
                 <td id="last-month-income"></td>
                 <td id="this-year-income"></td>
                 <td id="last-year-income"></td>
-            </tr>    
+            </tr>
             <tr>
                 <th>Encounters</th>
                 <td id="today-encounters"></td>
@@ -178,7 +225,18 @@
                 <td id="last-month-encounters"></td>
                 <td id="this-year-encounters"></td>
                 <td id="last-year-encounters"></td>
-            </tr> 
+            </tr>
+            <tr>
+                <th>$/Encounter</th>
+                <td id="today-per-patient"></td>
+                <td id="this-week-per-patient"></td>
+                <td id="last-week-per-patient"></td>
+                <td id="this-month-per-patient"></td>
+                <td id="last-month-per-patient"></td>
+                <td id="this-year-per-patient"></td>
+                <td id="last-year-per-patient"></td>
+            </tr>
+            <tr class="table-section-header"><td colspan="8">Procedure Counts</td></tr>
             <tr>
                 <th>Mohs first stage</th>
                 <td id="today-code-173"></td>
@@ -188,7 +246,7 @@
                 <td id="last-month-code-173"></td>
                 <td id="this-year-code-173"></td>
                 <td id="last-year-code-173"></td>
-            </tr>  
+            </tr>
             <tr>
                 <th>Mohs subsequent stage</th>
                 <td id="today-code-17312"></td>
@@ -199,7 +257,7 @@
                 <td id="this-year-code-17312"></td>
                 <td id="last-year-code-17312"></td>
             </tr>
-           <tr>
+            <tr>
                 <th>Biopsies</th>
                 <td id="today-code-111"></td>
                 <td id="this-week-code-111"></td>
@@ -208,8 +266,8 @@
                 <td id="last-month-code-111"></td>
                 <td id="this-year-code-111"></td>
                 <td id="last-year-code-111"></td>
-            </tr>  
-           <tr>
+            </tr>
+            <tr>
                 <th>Cryo</th>
                 <td id="today-code-cryo"></td>
                 <td id="this-week-code-cryo"></td>
@@ -218,18 +276,8 @@
                 <td id="last-month-code-cryo"></td>
                 <td id="this-year-code-cryo"></td>
                 <td id="last-year-code-cryo"></td>
-            </tr>       
-           <tr>
-                <th>Per Patient</th>
-                <td id="today-per-patient"></td>
-                <td id="this-week-per-patient"></td>
-                <td id="last-week-per-patient"></td>
-                <td id="this-month-per-patient"></td>
-                <td id="last-month-per-patient"></td>
-                <td id="this-year-per-patient"></td>
-                <td id="last-year-per-patient"></td>
-            </tr> 
-           <tr>
+            </tr>
+            <tr>
                 <th>88305</th>
                 <td id="today-code-88305"></td>
                 <td id="this-week-code-88305"></td>
@@ -238,12 +286,24 @@
                 <td id="last-month-code-88305"></td>
                 <td id="this-year-code-88305"></td>
                 <td id="last-year-code-88305"></td>
-            </tr>              
+            </tr>
         </tbody>
     </table>
-    <canvas id="cumulativeIncomeChart" width="400" height="200"></canvas>
-    <canvas id="incomeHistogram" width="400" height="200"></canvas>
 
+    <div class="charts-dashboard">
+        <div class="chart-card chart-full">
+            <div class="chart-card-title">Monthly Income — <span id="chart-year-label"></span> vs <span id="chart-lastyear-label"></span></div>
+            <canvas id="monthlyIncomeChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">Daily Income — Last 30 Days</div>
+            <canvas id="dailyIncomeChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">Mohs Volume — Last 12 Months</div>
+            <canvas id="mohsVolumeChart"></canvas>
+        </div>
+    </div>
 </div>
 
 <div class="tab-content" id="mohs-data-entry">
@@ -332,17 +392,44 @@
                 </select>
             </div>
         </div>  
+            <div id="mohs-editing-banner" style="display:none;">
+                <span>Editing entry for <strong id="mohs-editing-name"></strong></span>
+                <button type="button" id="cancelMohsEditButton">Cancel</button>
+            </div>
             <div class="buttons-container">
-                <button id="approveButton">Approve</button>
-                <button id="deleteLastMohsEntryButton" class="right-button">Delete Last Entry</button>
+                <button type="submit">Submit</button>
+                <button id="mohsHistoryButton" type="button" class="right-button">History</button>
+                <button id="deleteLastMohsEntryButton" type="button">Delete Last Entry</button>
             </div>
         <div id="mohs-result"></div>
     </form>
-    <button onclick="loadRecords()">Load Most Recent Entries</button>
-<table id="recordsTable">
-
-</table>
 </div>
+
+        <div id="mohs-history-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-box modal-box-wide">
+                <div class="modal-header">
+                    <h3>Recent Mohs Entries</h3>
+                    <button id="closeMohsHistoryModal" type="button" class="modal-close">&times;</button>
+                </div>
+                <div style="overflow-x:auto;">
+                    <table id="mohsRecordsTable" class="summary-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Name</th>
+                                <th>Site</th>
+                                <th>Dx</th>
+                                <th>Stages</th>
+                                <th>Repair</th>
+                                <th>Referral</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
         <div class="tab-content" id="mohs-summary">
             <h1>Mohs Summary</h1>
     <table class="summary-table">

@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
+    let editingEntryId = null;
+    let mohsEditingId = null;
+
     // Logout functionality
     const logoutButton = document.getElementById('logoutButton');
     if (logoutButton) {
@@ -35,7 +38,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (button.dataset.tab === 'summary') {
                 updateSummaryTable();
-                loadIncomeCumulativeChart();
+                loadDashboardCharts();
             }
 
             if (button.dataset.tab === 'mohs-summary') {
@@ -47,7 +50,8 @@ document.addEventListener('DOMContentLoaded', function() {
             if (button.dataset.tab === 'mohs-data-entry') {
                 document.getElementById('date').valueAsDate = new Date();
                 loadRecords();
-            }            
+            }
+
         });
     });
 
@@ -75,21 +79,28 @@ document.addEventListener('DOMContentLoaded', function() {
 
         formData.set('date', dateTime); // Replace the original date with the combined DATETIME
 
-        fetch('submit_mohs.php', {
+        const url = mohsEditingId !== null ? 'update_mohs_entry.php' : 'submit_mohs.php';
+        if (mohsEditingId !== null) {
+            formData.append('id', mohsEditingId);
+        }
+
+        fetch(url, {
             method: 'POST',
             body: formData
         })
         .then(response => response.text())
         .then(data => {
             document.getElementById('mohs-result').innerHTML = data;
-            clearForm(); // Clear the form fields
-            document.getElementById('name').focus(); // Focus the Name field after submission
-            loadRecords();
+            if (mohsEditingId !== null) {
+                clearMohsEditingState();
+            }
+            clearForm();
+            document.getElementById('name').focus();
         })
         .catch(error => {
             console.error('Error:', error);
             document.getElementById('mohs-result').innerHTML = 'An error occurred while submitting the form.';
-            document.getElementById('name').focus(); // Focus the Name field after error
+            document.getElementById('name').focus();
         })
         .finally(() => {
             submitButton.disabled = false;
@@ -147,19 +158,25 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('get_rvus.php')
             .then(response => response.json())
             .then(data => {
-                
+                function fmt$(val) {
+                    return '$' + parseFloat(val).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+                function perEnc(incomeVal, encounters) {
+                    return encounters > 0 ? fmt$(incomeVal / encounters) : '—';
+                }
 
-                const rvusMultiplier = 73; // Multiplier for RVUs to calculate income
-                const income = {
-                    today: parseFloat(data.today) * rvusMultiplier,
-                    this_week: parseFloat(data.this_week) * rvusMultiplier,
-                    last_week: parseFloat(data.last_week) * rvusMultiplier,
-                    this_month: parseFloat(data.this_month) * rvusMultiplier,
-                    last_month: parseFloat(data.last_month) * rvusMultiplier,
-                    this_year: parseFloat(data.this_year) * rvusMultiplier,
-                    last_year: parseFloat(data.last_year) * rvusMultiplier
-                };
+                // Stat cards
+                document.getElementById('card-today-income').textContent = fmt$(data.today_income);
+                document.getElementById('card-today-rvus').textContent = parseFloat(data.today).toFixed(1);
+                document.getElementById('card-today-enc').textContent = data.today_encounters;
+                document.getElementById('card-month-income').textContent = fmt$(data.this_month_income);
+                document.getElementById('card-month-rvus').textContent = parseFloat(data.this_month).toFixed(1);
+                document.getElementById('card-month-enc').textContent = data.this_month_encounters;
+                document.getElementById('card-year-income').textContent = fmt$(data.this_year_income);
+                document.getElementById('card-year-rvus').textContent = parseFloat(data.this_year).toFixed(1);
+                document.getElementById('card-year-enc').textContent = data.this_year_encounters;
 
+                // RVUs
                 document.getElementById('today-rvus').textContent = parseFloat(data.today).toFixed(1);
                 document.getElementById('this-week-rvus').textContent = parseFloat(data.this_week).toFixed(1);
                 document.getElementById('last-week-rvus').textContent = parseFloat(data.last_week).toFixed(1);
@@ -167,13 +184,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('last-month-rvus').textContent = parseFloat(data.last_month).toFixed(1);
                 document.getElementById('this-year-rvus').textContent = parseFloat(data.this_year).toFixed(1);
                 document.getElementById('last-year-rvus').textContent = parseFloat(data.last_year).toFixed(1);
-                document.getElementById('today-encounters').textContent = parseFloat(data.today_encounters).toFixed(0);
-                document.getElementById('this-week-encounters').textContent = parseFloat(data.this_week_encounters).toFixed(0);
-                document.getElementById('last-week-encounters').textContent = parseFloat(data.last_week_encounters).toFixed(0);
-                document.getElementById('this-month-encounters').textContent = parseFloat(data.this_month_encounters).toFixed(0);
-                document.getElementById('last-month-encounters').textContent = parseFloat(data.last_month_encounters).toFixed(0);
-                document.getElementById('this-year-encounters').textContent = parseFloat(data.this_year_encounters).toFixed(0);
-                document.getElementById('last-year-encounters').textContent = parseFloat(data.last_year_encounters).toFixed(0);
+
+                // Income
+                document.getElementById('today-income').textContent = fmt$(data.today_income);
+                document.getElementById('this-week-income').textContent = fmt$(data.this_week_income);
+                document.getElementById('last-week-income').textContent = fmt$(data.last_week_income);
+                document.getElementById('this-month-income').textContent = fmt$(data.this_month_income);
+                document.getElementById('last-month-income').textContent = fmt$(data.last_month_income);
+                document.getElementById('this-year-income').textContent = fmt$(data.this_year_income);
+                document.getElementById('last-year-income').textContent = fmt$(data.last_year_income);
+
+                // Encounters
+                document.getElementById('today-encounters').textContent = data.today_encounters;
+                document.getElementById('this-week-encounters').textContent = data.this_week_encounters;
+                document.getElementById('last-week-encounters').textContent = data.last_week_encounters;
+                document.getElementById('this-month-encounters').textContent = data.this_month_encounters;
+                document.getElementById('last-month-encounters').textContent = data.last_month_encounters;
+                document.getElementById('this-year-encounters').textContent = data.this_year_encounters;
+                document.getElementById('last-year-encounters').textContent = data.last_year_encounters;
+
+                // Per encounter (safe division)
+                document.getElementById('today-per-patient').textContent = perEnc(data.today_income, data.today_encounters);
+                document.getElementById('this-week-per-patient').textContent = perEnc(data.this_week_income, data.this_week_encounters);
+                document.getElementById('last-week-per-patient').textContent = perEnc(data.last_week_income, data.last_week_encounters);
+                document.getElementById('this-month-per-patient').textContent = perEnc(data.this_month_income, data.this_month_encounters);
+                document.getElementById('last-month-per-patient').textContent = perEnc(data.last_month_income, data.last_month_encounters);
+                document.getElementById('this-year-per-patient').textContent = perEnc(data.this_year_income, data.this_year_encounters);
+                document.getElementById('last-year-per-patient').textContent = perEnc(data.last_year_income, data.last_year_encounters);
+
+                // Procedure counts
                 document.getElementById('today-code-173').textContent = parseFloat(data.today_code_173).toFixed(0);
                 document.getElementById('this-week-code-173').textContent = parseFloat(data.this_week_code_173).toFixed(0);
                 document.getElementById('last-week-code-173').textContent = parseFloat(data.last_week_code_173).toFixed(0);
@@ -209,24 +248,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('last-month-code-88305').textContent = parseFloat(data.last_month_code_88305).toFixed(0);
                 document.getElementById('this-year-code-88305').textContent = parseFloat(data.this_year_code_88305).toFixed(0);
                 document.getElementById('last-year-code-88305').textContent = parseFloat(data.last_year_code_88305).toFixed(0);
-
-                // Update Income
-                document.getElementById('today-income').textContent = parseFloat(data.today_income).toFixed(2);
-                document.getElementById('this-week-income').textContent = parseFloat(data.this_week_income).toFixed(2);
-                document.getElementById('last-week-income').textContent = parseFloat(data.last_week_income).toFixed(2);
-                document.getElementById('this-month-income').textContent = parseFloat(data.this_month_income).toFixed(2);
-                document.getElementById('last-month-income').textContent = parseFloat(data.last_month_income).toFixed(2);
-                document.getElementById('this-year-income').textContent = parseFloat(data.this_year_income).toFixed(2);
-                document.getElementById('last-year-income').textContent = parseFloat(data.last_year_income).toFixed(2);
-
-                // Update Per Patient values
-                document.getElementById('today-per-patient').textContent = (income.today / data.today_encounters).toFixed(2);
-                document.getElementById('this-week-per-patient').textContent = (income.this_week / data.this_week_encounters).toFixed(2);
-                document.getElementById('last-week-per-patient').textContent = (income.last_week / data.last_week_encounters).toFixed(2);
-                document.getElementById('this-month-per-patient').textContent = (income.this_month / data.this_month_encounters).toFixed(2);
-                document.getElementById('last-month-per-patient').textContent = (income.last_month / data.last_month_encounters).toFixed(2);
-                document.getElementById('this-year-per-patient').textContent = (income.this_year / data.this_year_encounters).toFixed(2);
-                document.getElementById('last-year-per-patient').textContent = (income.last_year / data.last_year_encounters).toFixed(2);
             })
             .catch(error => console.error('Error fetching RVUs:', error));
     }
@@ -374,8 +395,16 @@ document.addEventListener('DOMContentLoaded', function() {
         let totalincome = totalrvus * 73;
 
         approveButton.disabled = true;
-        saveToDatabase(inputs, totalrvus, totalincome).finally(() => {
+        const savePromise = editingEntryId !== null
+            ? updateInDatabase(editingEntryId, inputs, totalrvus, totalincome, document.getElementById('edit-date').value)
+            : saveToDatabase(inputs, totalrvus, totalincome);
+
+        savePromise.finally(() => {
             approveButton.disabled = false;
+            if (editingEntryId !== null) {
+                clearEditingState();
+            }
+            loadRvuRecords();
         });
 
         // Clear the table
@@ -471,7 +500,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Add code to table function
-    function addCodeToTable(code, value, isDefault) {
+    function addCodeToTable(code, value, isDefault, multiplier = 1) {
         let tableBody = document.querySelector('#codeTable tbody');
         let row = document.createElement('tr');
         row.setAttribute('data-code', isDefault ? 'default' : code); // Store code in data attribute
@@ -498,13 +527,13 @@ document.addEventListener('DOMContentLoaded', function() {
         let multiplierCell = document.createElement('td');
         let multiplierInput = document.createElement('input');
         multiplierInput.type = 'number';
-        multiplierInput.value = '1';
+        multiplierInput.value = multiplier;
         multiplierInput.classList.add('multiplier-input', 'small-input');
         multiplierCell.appendChild(multiplierInput);
         row.appendChild(multiplierCell);
 
         let productCell = document.createElement('td');
-        let product = value * 1; // Default multiplier is 1
+        let product = value * multiplier;
         productCell.textContent = product.toFixed(2);
         productCell.classList.add('product-cell');
         row.appendChild(productCell);
@@ -607,6 +636,221 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('result').innerHTML = 'An error occurred while saving data.';
         });
     }
+
+    // Update existing entry in database
+    function updateInDatabase(id, inputs, totalrvus, totalincome, date) {
+        return fetch('update_rvu_entry.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `id=${id}&inputs=${encodeURIComponent(inputs)}&totalrvus=${totalrvus}&totalincome=${totalincome}&date=${encodeURIComponent(date)}`
+        })
+        .then(response => response.text())
+        .then(data => {
+            document.getElementById('result').innerHTML = data;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('result').innerHTML = 'An error occurred while updating entry.';
+        });
+    }
+
+    // Clear editing state
+    function clearEditingState() {
+        editingEntryId = null;
+        document.getElementById('editing-banner').style.display = 'none';
+        document.getElementById('approveButton').textContent = 'Approve';
+        document.getElementById('enter-codes').classList.remove('editing-mode');
+    }
+
+    // Load an entry into the code table for editing
+    function loadEntryForEdit(record) {
+        // Clear current table
+        const tableBody = document.querySelector('#codeTable tbody');
+        while (tableBody.firstChild) tableBody.removeChild(tableBody.firstChild);
+        document.getElementById('grandTotal').textContent = '0.00';
+
+        // Count occurrences of each code in the comma-separated inputs string
+        const codes = record.inputs.split(',').filter(c => c.trim() !== '');
+        const codeCounts = {};
+        codes.forEach(code => {
+            const c = code.trim();
+            codeCounts[c] = (codeCounts[c] || 0) + 1;
+        });
+
+        // Look up each unique code and add to table with correct multiplier
+        const lookupPromises = Object.entries(codeCounts).map(([code, count]) =>
+            fetch('lookup.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `code=${encodeURIComponent(code)}`
+            })
+            .then(r => r.text())
+            .then(data => {
+                if (data.startsWith('Value: ')) {
+                    const value = parseFloat(data.replace('Value: ', ''));
+                    addCodeToTable(code, value, false, count);
+                }
+            })
+        );
+
+        Promise.all(lookupPromises).then(() => {
+            updateGrandTotal();
+            editingEntryId = record.id;
+            document.getElementById('edit-date').value = record.date.replace(' ', 'T').substring(0, 16);
+            document.getElementById('editing-date').textContent = record.date;
+            document.getElementById('editing-banner').style.display = 'flex';
+            document.getElementById('approveButton').textContent = 'Update Entry';
+            document.getElementById('enter-codes').classList.add('editing-mode');
+            document.getElementById('codeTable').scrollIntoView({ behavior: 'smooth' });
+        });
+    }
+
+    // History modal open/close
+    document.getElementById('historyButton').addEventListener('click', function() {
+        loadRvuRecords();
+        document.getElementById('history-modal').style.display = 'flex';
+    });
+
+    document.getElementById('closeHistoryModal').addEventListener('click', function() {
+        document.getElementById('history-modal').style.display = 'none';
+    });
+
+    document.getElementById('history-modal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            this.style.display = 'none';
+        }
+    });
+
+    // Cancel edit button
+    document.getElementById('cancelEditButton').addEventListener('click', function() {
+        const tableBody = document.querySelector('#codeTable tbody');
+        while (tableBody.firstChild) tableBody.removeChild(tableBody.firstChild);
+        document.getElementById('grandTotal').textContent = '0.00';
+        clearEditingState();
+    });
+
+    // Mohs history modal open/close
+    document.getElementById('mohsHistoryButton').addEventListener('click', function() {
+        loadMohsRecords();
+        document.getElementById('mohs-history-modal').style.display = 'flex';
+    });
+
+    document.getElementById('closeMohsHistoryModal').addEventListener('click', function() {
+        document.getElementById('mohs-history-modal').style.display = 'none';
+    });
+
+    document.getElementById('mohs-history-modal').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
+
+    // Cancel Mohs edit
+    document.getElementById('cancelMohsEditButton').addEventListener('click', function() {
+        clearForm();
+        clearMohsEditingState();
+    });
+
+    function clearMohsEditingState() {
+        mohsEditingId = null;
+        document.getElementById('mohs-editing-banner').style.display = 'none';
+        document.querySelector('#mohsForm [type="submit"]').textContent = 'Submit';
+        document.getElementById('mohsForm').classList.remove('editing-mode');
+    }
+
+    function loadMohsRecords() {
+        fetch('getRecords.php')
+            .then(r => r.json())
+            .then(records => {
+                const tbody = document.querySelector('#mohsRecordsTable tbody');
+                tbody.innerHTML = '';
+                records.forEach(record => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = record.date;
+                    row.insertCell(1).textContent = record.name;
+                    row.insertCell(2).textContent = record.site;
+                    row.insertCell(3).textContent = record.diagnosis;
+                    row.insertCell(4).textContent = record.stages;
+                    row.insertCell(5).textContent = record.repair;
+                    row.insertCell(6).textContent = record.referral;
+                    const actionCell = row.insertCell(7);
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => {
+                        document.getElementById('mohs-history-modal').style.display = 'none';
+                        loadMohsEntryForEdit(record);
+                    });
+                    actionCell.appendChild(editBtn);
+                });
+            })
+            .catch(e => console.error('Error loading Mohs records:', e));
+    }
+
+    function loadMohsEntryForEdit(record) {
+        const diagnosisOptions = ['BCC','SCC','BSCC','AFX','Merkel','Sebaceous carcinoma'];
+        const repairOptions    = ['CLC','ILC','Flap','FTSG','2nd','Refer'];
+        const referralOptions  = ['Me','Amanda','Neelie','Scholes','Olmstead','Laurel','Stuart','VA'];
+
+        document.getElementById('date').value    = record.date.split(' ')[0];
+        document.getElementById('name').value    = record.name;
+        document.getElementById('site').value    = record.site;
+        document.getElementById('nyu').value     = record.NYU;
+        document.getElementById('stages').value  = record.stages;
+        document.getElementById('comments').value = record.comments;
+        document.getElementById('addon').value   = record.addon;
+
+        function setSelectOrOther(selectId, otherId, value, options) {
+            if (options.includes(value)) {
+                document.getElementById(selectId).value = value;
+                document.getElementById(otherId).style.display = 'none';
+                document.getElementById(otherId).value = '';
+            } else {
+                document.getElementById(selectId).value = 'other';
+                document.getElementById(otherId).style.display = 'block';
+                document.getElementById(otherId).value = value;
+            }
+        }
+
+        setSelectOrOther('diagnosis', 'diagnosis-other', record.diagnosis, diagnosisOptions);
+        setSelectOrOther('repair',    'repair-other',    record.repair,    repairOptions);
+        setSelectOrOther('referral',  'referral-other',  record.referral,  referralOptions);
+
+        mohsEditingId = record.id;
+        document.getElementById('mohs-editing-name').textContent = record.name;
+        document.getElementById('mohs-editing-banner').style.display = 'flex';
+        document.querySelector('#mohsForm [type="submit"]').textContent = 'Update Entry';
+        document.getElementById('mohsForm').classList.add('editing-mode');
+        document.getElementById('name').focus();
+    }
+
+    // Load and display recent RVU entries
+    function loadRvuRecords() {
+        fetch('get_rvu_records.php')
+            .then(response => response.json())
+            .then(records => {
+                const tbody = document.querySelector('#rvuRecordsTable tbody');
+                tbody.innerHTML = '';
+                records.forEach(record => {
+                    const row = tbody.insertRow();
+                    row.insertCell(0).textContent = record.date;
+                    const codesCell = row.insertCell(1);
+                    codesCell.textContent = record.inputs.length > 50
+                        ? record.inputs.substring(0, 50) + '...'
+                        : record.inputs;
+                    codesCell.title = record.inputs;
+                    row.insertCell(2).textContent = parseFloat(record.totalrvus).toFixed(1);
+                    row.insertCell(3).textContent = parseFloat(record.totalincome).toFixed(2);
+                    const actionCell = row.insertCell(4);
+                    const editBtn = document.createElement('button');
+                    editBtn.textContent = 'Edit';
+                    editBtn.addEventListener('click', () => {
+                        document.getElementById('history-modal').style.display = 'none';
+                        loadEntryForEdit(record);
+                    });
+                    actionCell.appendChild(editBtn);
+                });
+            })
+            .catch(error => console.error('Error loading RVU records:', error));
+    }
+
 });
 
 
@@ -773,82 +1017,136 @@ function loadMohsCumulativeChart() {
     .catch(error => console.error('Error fetching cumulative Mohs data:', error));
 }
 
-// Function to load income cumulative chart
-function loadIncomeCumulativeChart() {
-    fetch('getDataForIncome.php')
-        .then(response => response.json())
+// Dashboard chart instances — destroyed and recreated on each tab visit
+const _charts = {};
+function _destroyChart(id) {
+    if (_charts[id]) { _charts[id].destroy(); delete _charts[id]; }
+}
+
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function monthLabel(yr, mo) {
+    return MONTH_NAMES[mo - 1] + ' ' + String(yr).slice(2);
+}
+
+function loadDashboardCharts() {
+    loadMonthlyIncomeChart();
+    loadDailyIncomeChart();
+    loadMohsVolumeChart();
+}
+
+function loadMonthlyIncomeChart() {
+    fetch('get_monthly_income.php')
+        .then(r => r.json())
         .then(data => {
-        // Initialize arrays for cumulative income for 365 days
-        let cumulativeIncomeThisYear = initializeArray(365);
-        let cumulativeIncomeLastYear = initializeArray(365);
-
-        let totalIncomeThisYear = 0;
-        let totalIncomeLastYear = 0;
-
-        // Process the data for this year
-        data.this_year.forEach(entry => {
-            const dayOfYear = getDayOfYear(entry.entry_date);
-            totalIncomeThisYear += parseFloat(entry.total_income); // Summing the totalincome
-            cumulativeIncomeThisYear[dayOfYear - 1] = totalIncomeThisYear; // dayOfYear - 1 because array is 0-indexed
-        });
-
-        // Process the data for last year
-        data.last_year.forEach(entry => {
-            const dayOfYear = getDayOfYear(entry.entry_date);
-            totalIncomeLastYear += parseFloat(entry.total_income); // Summing the totalincome
-            cumulativeIncomeLastYear[dayOfYear - 1] = totalIncomeLastYear; // dayOfYear - 1 because array is 0-indexed
-        });
-
-        // Create the chart
-        const ctx = document.getElementById('cumulativeIncomeChart').getContext('2d');
-        const cumulativeIncomeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: 365 }, (_, i) => i + 1), // Days 1 to 365
-                datasets: [
-                    {
-                        label: 'Cumulative Total Income This Year',
-                        data: cumulativeIncomeThisYear,
-                        borderColor: 'rgba(75, 192, 192, 1)', // Color for this year
-                        borderWidth: 2,
-                        fill: false,
-                        spanGaps: true, // Allow gaps where data is missing
-                        pointRadius: 0 // Hide the data points (circles)
-                    },
-                    {
-                        label: 'Cumulative Total Income Last Year',
-                        data: cumulativeIncomeLastYear,
-                        borderColor: 'rgba(255, 99, 132, 1)', // Different color for last year
-                        borderWidth: 2,
-                        fill: false,
-                        spanGaps: true, // Allow gaps where data is missing
-                        pointRadius: 0 // Hide the data points (circles)
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    x: {
-                        type: 'linear', // Linear scale for day numbers
-                        title: {
-                            display: true,
-                            text: 'Day of the Year'
+            document.getElementById('chart-year-label').textContent = data.this_year_label;
+            document.getElementById('chart-lastyear-label').textContent = data.last_year_label;
+            _destroyChart('monthlyIncome');
+            _charts['monthlyIncome'] = new Chart(
+                document.getElementById('monthlyIncomeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: MONTH_NAMES,
+                    datasets: [
+                        {
+                            label: String(data.this_year_label),
+                            data: data.this_year,
+                            backgroundColor: 'rgba(0, 123, 255, 0.75)',
+                            borderRadius: 3
                         },
-                        ticks: {
-                            stepSize: 30 // Adjust tick steps if necessary (e.g., every 30 days)
+                        {
+                            label: String(data.last_year_label),
+                            data: data.last_year,
+                            backgroundColor: 'rgba(0, 123, 255, 0.2)',
+                            borderRadius: 3
                         }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Cumulative Total Income'
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        y: {
+                            ticks: {
+                                callback: v => '$' + v.toLocaleString()
+                            }
                         }
                     }
                 }
-            }
-        });
-    })
-    .catch(error => console.error('Error fetching income data:', error));
+            });
+        })
+        .catch(e => console.error('Monthly income chart error:', e));
+}
+
+function loadDailyIncomeChart() {
+    fetch('get_daily_income_recent.php')
+        .then(r => r.json())
+        .then(rows => {
+            const labels = rows.map(r => {
+                const d = new Date(r.day + 'T00:00:00');
+                return MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+            });
+            const values = rows.map(r => r.income);
+            _destroyChart('dailyIncome');
+            _charts['dailyIncome'] = new Chart(
+                document.getElementById('dailyIncomeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Income',
+                        data: values,
+                        backgroundColor: 'rgba(0, 123, 255, 0.7)',
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { maxRotation: 45, font: { size: 10 } } },
+                        y: { ticks: { callback: v => '$' + v.toLocaleString() } }
+                    }
+                }
+            });
+        })
+        .catch(e => console.error('Daily income chart error:', e));
+}
+
+
+function loadMohsVolumeChart() {
+    fetch('get_monthly_mohs_volume.php')
+        .then(r => r.json())
+        .then(rows => {
+            const labels = rows.map(r => monthLabel(r.yr, r.mo));
+            const values = rows.map(r => r.cases);
+            _destroyChart('mohsVolume');
+            _charts['mohsVolume'] = new Chart(
+                document.getElementById('mohsVolumeChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: 'Mohs Cases',
+                        data: values,
+                        backgroundColor: 'rgba(23,162,184,0.75)',
+                        borderRadius: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: { ticks: { maxRotation: 45, font: { size: 10 } } },
+                        y: { ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+        })
+        .catch(e => console.error('Mohs volume chart error:', e));
 }
 
 // Function to load repair rolling chart
