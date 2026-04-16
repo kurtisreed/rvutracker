@@ -432,6 +432,25 @@
         </div>
         <div class="tab-content" id="mohs-summary">
             <h1>Mohs Summary</h1>
+
+    <div class="stat-cards">
+        <div class="stat-card">
+            <div class="stat-label">This Month</div>
+            <div class="stat-income" id="mohs-card-month-total">—</div>
+            <div class="stat-sub">Mohs cases</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">This Year</div>
+            <div class="stat-income" id="mohs-card-year-total">—</div>
+            <div class="stat-sub"><span id="mohs-card-year-onestage">—</span>% one-stage</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">All Time</div>
+            <div class="stat-income" id="mohs-card-alltime-total">—</div>
+            <div class="stat-sub"><span id="mohs-card-alltime-onestage">—</span>% one-stage</div>
+        </div>
+    </div>
+
     <table class="summary-table">
         <thead>
             <tr>
@@ -459,7 +478,7 @@
                 <td id="this-year-onestage"></td>
                 <td id="last-year-onestage"></td>
                 <td id="all-time-onestage"></td>
-            </tr>    
+            </tr>
             <tr>
                 <th>Add On</th>
                 <td id="this-month-addon"></td>
@@ -467,12 +486,10 @@
                 <td id="this-year-addon"></td>
                 <td id="last-year-addon"></td>
                 <td id="all-time-addon"></td>
-            </tr> 
+            </tr>
+            <tr class="table-section-header"><td colspan="6">Closures</td></tr>
             <tr>
-                <th>Closures</th>
-            </tr>  
-            <tr>
-                <th>   CLC</th>
+                <th>CLC</th>
                 <td id="this-month-CLC"></td>
                 <td id="last-month-CLC"></td>
                 <td id="this-year-CLC"></td>
@@ -480,30 +497,30 @@
                 <td id="all-time-CLC"></td>
             </tr>
             <tr>
-                <th>   ILC</th>
+                <th>ILC</th>
                 <td id="this-month-ILC"></td>
                 <td id="last-month-ILC"></td>
                 <td id="this-year-ILC"></td>
                 <td id="last-year-ILC"></td>
                 <td id="all-time-ILC"></td>
-            </tr>            
-           <tr>
-                <th>Flap Closure</th>
+            </tr>
+            <tr>
+                <th>Flap</th>
                 <td id="this-month-flapclosure"></td>
                 <td id="last-month-flapclosure"></td>
                 <td id="this-year-flapclosure"></td>
                 <td id="last-year-flapclosure"></td>
                 <td id="all-time-flapclosure"></td>
-            </tr>  
-           <tr>
+            </tr>
+            <tr>
                 <th>FTSG</th>
                 <td id="this-month-FTSG"></td>
                 <td id="last-month-FTSG"></td>
                 <td id="this-year-FTSG"></td>
                 <td id="last-year-FTSG"></td>
                 <td id="all-time-FTSG"></td>
-            </tr>       
-           <tr>
+            </tr>
+            <tr>
                 <th>2nd Intent</th>
                 <td id="this-month-secondintent"></td>
                 <td id="last-month-secondintent"></td>
@@ -511,65 +528,85 @@
                 <td id="last-year-secondintent"></td>
                 <td id="all-time-secondintent"></td>
             </tr>
-            <tr>
-                <th>Tumor Type</th>
-            </tr>              
+            <tr class="table-section-header"><td colspan="6">Tumor Type</td></tr>
             <tr>
                 <th>BCC</th>
                 <td id="this-month-BCC"></td>
                 <td id="last-month-BCC"></td>
                 <td id="this-year-BCC"></td>
                 <td id="last-year-BCC"></td>
-                <td id="all-time-BCC"></td>                
-            </tr>   
+                <td id="all-time-BCC"></td>
+            </tr>
             <tr>
                 <th>SCC</th>
                 <td id="this-month-SCC"></td>
                 <td id="last-month-SCC"></td>
                 <td id="this-year-SCC"></td>
                 <td id="last-year-SCC"></td>
-                <td id="all-time-SCC"></td>                
-            </tr>      
+                <td id="all-time-SCC"></td>
+            </tr>
             <tr>
                 <th>Other</th>
                 <td id="this-month-other"></td>
                 <td id="last-month-other"></td>
                 <td id="this-year-other"></td>
                 <td id="last-year-other"></td>
-                <td id="all-time-other"></td>                
-            </tr>     
-            <tr>
-                <th>Referral</th>
-            </tr>              
+                <td id="all-time-other"></td>
+            </tr>
+            <tr class="table-section-header"><td colspan="6">Referral</td></tr>
             <tr>
                 <th>Me</th>
                 <td id="this-month-me"></td>
                 <td id="last-month-me"></td>
                 <td id="this-year-me"></td>
                 <td id="last-year-me"></td>
-                <td id="all-time-me"></td>                
-            </tr>   
+                <td id="all-time-me"></td>
+            </tr>
             <tr>
                 <th>Amanda</th>
                 <td id="this-month-amanda"></td>
                 <td id="last-month-amanda"></td>
                 <td id="this-year-amanda"></td>
                 <td id="last-year-amanda"></td>
-                <td id="all-time-amanda"></td>                
-            </tr>      
+                <td id="all-time-amanda"></td>
+            </tr>
             <tr>
                 <th>Outside</th>
                 <td id="this-month-outside"></td>
                 <td id="last-month-outside"></td>
                 <td id="this-year-outside"></td>
                 <td id="last-year-outside"></td>
-                <td id="all-time-outside"></td>                
-            </tr>              
+                <td id="all-time-outside"></td>
+            </tr>
         </tbody>
     </table>
-    
-<canvas id="cumulativeChart" width="400" height="200"></canvas>
-<canvas id="repairChart" width="400" height="200"></canvas>
+
+    <div class="charts-dashboard">
+        <div class="chart-card chart-full">
+            <div class="chart-card-title">Monthly Cases — <span id="mohs-chart-year-label"></span> vs <span id="mohs-chart-lastyear-label"></span></div>
+            <canvas id="mohsMonthlyCasesChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">Closure Types — <span id="mohs-closure-year-label"></span> vs <span id="mohs-closure-lastyear-label"></span></div>
+            <canvas id="mohsClosureMixChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <div class="chart-card-title">Tumor Type — This Year</div>
+            <canvas id="mohsTumorMixChart"></canvas>
+        </div>
+        <div class="chart-card chart-full">
+            <div class="chart-card-title">Referral Sources — <span id="mohs-referral-year-label"></span> vs <span id="mohs-referral-lastyear-label"></span></div>
+            <canvas id="mohsReferralChart"></canvas>
+        </div>
+        <div class="chart-card chart-full">
+            <div class="chart-card-title">1-Stage % — Rolling 200 Cases</div>
+            <canvas id="mohsOneStageChart"></canvas>
+        </div>
+        <div class="chart-card chart-full">
+            <div class="chart-card-title">Repair Type Mix — Rolling 200 Cases</div>
+            <canvas id="repairChart"></canvas>
+        </div>
+    </div>
 
         </div>
     </div>

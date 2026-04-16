@@ -43,8 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (button.dataset.tab === 'mohs-summary') {
                 updateMohsSummaryTable();
-                loadMohsCumulativeChart();
-                loadRepairRollingChart();
+                loadMohsDashboardCharts();
             }
             
             if (button.dataset.tab === 'mohs-data-entry') {
@@ -257,8 +256,12 @@ document.addEventListener('DOMContentLoaded', function() {
         fetch('get_mohs_data.php')
             .then(response => response.json())
             .then(data => {
-                console.log(data);
-
+                // Stat cards
+                document.getElementById('mohs-card-month-total').textContent = parseFloat(data.this_month_total).toFixed(0);
+                document.getElementById('mohs-card-year-total').textContent = parseFloat(data.this_year_total).toFixed(0);
+                document.getElementById('mohs-card-alltime-total').textContent = parseFloat(data.all_time_total).toFixed(0);
+                document.getElementById('mohs-card-year-onestage').textContent = parseFloat(data.this_year_onestage).toFixed(1);
+                document.getElementById('mohs-card-alltime-onestage').textContent = parseFloat(data.all_time_onestage).toFixed(1);
 
                 document.getElementById('this-month-total').textContent = parseFloat(data.this_month_total).toFixed(0);
                 document.getElementById('last-month-total').textContent = parseFloat(data.last_month_total).toFixed(0);
@@ -939,83 +942,6 @@ function initializeArray(size, initialValue = null) {
     return Array.from({ length: size }, () => initialValue);
 }
 
-// Function to load Mohs cumulative chart
-function loadMohsCumulativeChart() {
-    fetch('getCumulativeMohsData.php')
-        .then(response => response.json())
-        .then(data => {
-        // Initialize arrays for cumulative counts for 365 days
-        let cumulativeCountsThisYear = initializeArray(365);
-        let cumulativeCountsLastYear = initializeArray(365);
-
-        let totalThisYear = 0;
-        let totalLastYear = 0;
-
-        // Process the data for this year
-        data.this_year.forEach(entry => {
-            const dayOfYear = getDayOfYear(entry.entry_date);
-            totalThisYear += parseInt(entry.entry_count);
-            cumulativeCountsThisYear[dayOfYear - 1] = totalThisYear; // dayOfYear - 1 because array is 0-indexed
-        });
-
-        // Process the data for last year
-        data.last_year.forEach(entry => {
-            const dayOfYear = getDayOfYear(entry.entry_date);
-            totalLastYear += parseInt(entry.entry_count);
-            cumulativeCountsLastYear[dayOfYear - 1] = totalLastYear; // dayOfYear - 1 because array is 0-indexed
-        });
-
-        // Create the chart
-        const ctx = document.getElementById('cumulativeChart').getContext('2d');
-        const cumulativeChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: Array.from({ length: 365 }, (_, i) => i + 1), // Days 1 to 365
-                datasets: [
-                    {
-                        label: 'Cumulative Mohs This Year',
-                        data: cumulativeCountsThisYear,
-                        borderColor: 'rgba(75, 192, 192, 1)', // Color for this year
-                        borderWidth: 2,
-                        fill: false,
-                        spanGaps: true, // Allow gaps where data is missing
-                        pointRadius: 0
-                    },
-                    {
-                        label: 'Cumulative Mohs Last Year',
-                        data: cumulativeCountsLastYear,
-                        borderColor: 'rgba(255, 99, 132, 1)', // Different color for last year
-                        borderWidth: 2,
-                        fill: false,
-                        spanGaps: true, // Allow gaps where data is missing
-                        pointRadius: 0
-                    }
-                ]
-            },
-            options: {
-                scales: {
-                    x: {
-                        type: 'linear', // Linear scale for day numbers
-                        title: {
-                            display: true,
-                            text: 'Day of the Year'
-                        },
-                        ticks: {
-                            stepSize: 30 // Adjust tick steps if necessary (e.g., every 30 days)
-                        }
-                    },
-                    y: {
-                        title: {
-                            display: true,
-                            text: 'Cumulative Mohs'
-                        }
-                    }
-                }
-            }
-        });
-    })
-    .catch(error => console.error('Error fetching cumulative Mohs data:', error));
-}
 
 // Dashboard chart instances — destroyed and recreated on each tab visit
 const _charts = {};
@@ -1149,97 +1075,324 @@ function loadMohsVolumeChart() {
         .catch(e => console.error('Mohs volume chart error:', e));
 }
 
-// Function to load repair rolling chart
-function loadRepairRollingChart() {
-    const rollingWindow = 200;
+// ── Mohs Dashboard Charts ────────────────────────────────────────────────────
 
-// Function to calculate rolling proportions
-function calculateRollingProportions(data, windowSize) {
-    const rollingData = [];
-    for (let i = 0; i < data.length; i++) {
-        if (i >= windowSize - 1) {
-            const windowSlice = data.slice(i - windowSize + 1, i + 1);
-            const repairCounts = {};
-            windowSlice.forEach(item => {
-                repairCounts[item.repair] = (repairCounts[item.repair] || 0) + 1;
-            });
-            const total = windowSlice.length;
-            rollingData.push({
-                date: data[i].date,
-                proportions: Object.keys(repairCounts).reduce((acc, repair) => {
-                    acc[repair] = repairCounts[repair] / total;
-                    return acc;
-                }, {})
-            });
-        }
-    }
-    return rollingData;
+function loadMohsDashboardCharts() {
+    // Fetch summary data once; pass to charts that need it
+    fetch('get_mohs_data.php')
+        .then(r => r.json())
+        .then(data => {
+            const thisYear = new Date().getFullYear();
+            const lastYear = thisYear - 1;
+            loadMohsClosureMixChart(data, thisYear, lastYear);
+            loadMohsTumorMixChart(data);
+        })
+        .catch(e => console.error('Mohs dashboard data error:', e));
+
+    loadMohsMonthlyCasesChart();
+    loadMohsReferralChart();
+    loadMohsOneStageChart();
+    loadMohsRepairChart();
 }
 
-// Fetch data from the PHP script
-fetch('get_repair_data.php')
-    .then(response => response.json())
-    .then(data => {
-        // Calculate rolling proportions
-        const rollingData = calculateRollingProportions(data, rollingWindow);
-
-        // Prepare chart data
-        const labels = rollingData.map(item => item.date);
-        const repairTypes = [...new Set(data.map(item => item.repair))];
-        const datasets = repairTypes.map(type => ({
-            label: type,
-            data: rollingData.map(item => item.proportions[type] || 0),
-            borderColor: getRandomColor(),
-                        borderWidth: 2,
-                        fill: false,
-                        spanGaps: true, // Allow gaps where data is missing
-                        pointRadius: 0 // Hide the data points (circles)
-        }));
-
-        // Create the chart
-        const ctx = document.getElementById('repairChart').getContext('2d');
-        new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: labels,
-                datasets: datasets
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                },
-                scales: {
-                    x: {
-                        title: { display: true, text: 'Year' },
-                        ticks: {
-                            callback: function(value, index, ticks) {
-                                // Show year only if it's the first tick of a new year
-                                const currentDate = new Date(labels[value]);
-                                const previousDate = index > 0 ? new Date(labels[ticks[index - 1].value]) : null;
-
-                                if (!previousDate || currentDate.getFullYear() !== previousDate.getFullYear()) {
-                                    return currentDate.getFullYear();
-                                }
-                                return '';
-                            },
+function loadMohsMonthlyCasesChart() {
+    fetch('get_monthly_mohs_cases.php')
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('mohs-chart-year-label').textContent = data.this_year_label;
+            document.getElementById('mohs-chart-lastyear-label').textContent = data.last_year_label;
+            _destroyChart('mohsMonthly');
+            _charts['mohsMonthly'] = new Chart(
+                document.getElementById('mohsMonthlyCasesChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: MONTH_NAMES,
+                    datasets: [
+                        {
+                            label: String(data.this_year_label),
+                            data: data.this_year,
+                            backgroundColor: 'rgba(0, 150, 136, 0.8)',
+                            borderRadius: 3
                         },
-                    },
-                    y: {
-                        title: { display: true, text: 'Proportion' },
-                        min: 0,
-                        max: 1
+                        {
+                            label: String(data.last_year_label),
+                            data: data.last_year,
+                            backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                            borderRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { ticks: { stepSize: 1 } } }
+                }
+            });
+        })
+        .catch(e => console.error('Mohs monthly cases chart error:', e));
+}
+
+function loadMohsClosureMixChart(data, thisYear, lastYear) {
+    document.getElementById('mohs-closure-year-label').textContent = thisYear;
+    document.getElementById('mohs-closure-lastyear-label').textContent = lastYear;
+    const labels = ['CLC', 'ILC', 'Flap', 'FTSG', '2nd'];
+    const thisYearVals = [
+        parseFloat(data.this_year_CLC),
+        parseFloat(data.this_year_ILC),
+        parseFloat(data.this_year_flap),
+        parseFloat(data.this_year_FTSG),
+        parseFloat(data.this_year_secondintent)
+    ];
+    const lastYearVals = [
+        parseFloat(data.last_year_CLC),
+        parseFloat(data.last_year_ILC),
+        parseFloat(data.last_year_flap),
+        parseFloat(data.last_year_FTSG),
+        parseFloat(data.last_year_secondintent)
+    ];
+    _destroyChart('mohsClosure');
+    _charts['mohsClosure'] = new Chart(
+        document.getElementById('mohsClosureMixChart').getContext('2d'), {
+        type: 'bar',
+        data: {
+            labels,
+            datasets: [
+                {
+                    label: String(thisYear),
+                    data: thisYearVals,
+                    backgroundColor: 'rgba(0, 150, 136, 0.8)',
+                    borderRadius: 3
+                },
+                {
+                    label: String(lastYear),
+                    data: lastYearVals,
+                    backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                    borderRadius: 3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { position: 'top' } },
+            scales: {
+                y: { ticks: { callback: v => v.toFixed(0) + '%' } }
+            }
+        }
+    });
+}
+
+function loadMohsTumorMixChart(data) {
+    const bcc   = parseFloat(data.this_year_BCC);
+    const scc   = parseFloat(data.this_year_SCC);
+    const other = parseFloat(data.this_year_other);
+    _destroyChart('mohsTumor');
+    _charts['mohsTumor'] = new Chart(
+        document.getElementById('mohsTumorMixChart').getContext('2d'), {
+        type: 'doughnut',
+        data: {
+            labels: ['BCC', 'SCC', 'Other'],
+            datasets: [{
+                data: [bcc, scc, other],
+                backgroundColor: [
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(201, 203, 207, 0.8)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'right' },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ctx.label + ': ' + ctx.raw.toFixed(1) + '%'
                     }
                 }
             }
-        });
+        }
     });
+}
 
-    // Function to generate random colors for lines
-    function getRandomColor() {
-        return `rgba(${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, ${Math.floor(Math.random() * 255)}, 1)`;
+function loadMohsReferralChart() {
+    fetch('get_mohs_referral_breakdown.php')
+        .then(r => r.json())
+        .then(rows => {
+            const thisYear = new Date().getFullYear();
+            const lastYear = thisYear - 1;
+            document.getElementById('mohs-referral-year-label').textContent = thisYear;
+            document.getElementById('mohs-referral-lastyear-label').textContent = lastYear;
+
+            const labels       = rows.map(r => r.referral);
+            const thisYearVals = rows.map(r => r.this_year);
+            const lastYearVals = rows.map(r => r.last_year);
+
+            _destroyChart('mohsReferral');
+            _charts['mohsReferral'] = new Chart(
+                document.getElementById('mohsReferralChart').getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels,
+                    datasets: [
+                        {
+                            label: String(thisYear),
+                            data: thisYearVals,
+                            backgroundColor: 'rgba(0, 150, 136, 0.8)',
+                            borderRadius: 3
+                        },
+                        {
+                            label: String(lastYear),
+                            data: lastYearVals,
+                            backgroundColor: 'rgba(0, 150, 136, 0.2)',
+                            borderRadius: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { ticks: { stepSize: 1 } } }
+                }
+            });
+        })
+        .catch(e => console.error('Mohs referral chart error:', e));
+}
+
+function loadMohsOneStageChart() {
+    fetch('get_onestage_trend.php')
+        .then(r => r.json())
+        .then(data => {
+            const windowSize = 200;
+            const rolling = [];
+            for (let i = windowSize - 1; i < data.length; i++) {
+                const slice = data.slice(i - windowSize + 1, i + 1);
+                const count = slice.filter(d => d.stages === '1').length;
+                rolling.push({ date: data[i].date, pct: (count / windowSize) * 100 });
+            }
+            const labels = rolling.map(d => d.date);
+            const values = rolling.map(d => d.pct);
+
+            _destroyChart('mohsOneStage');
+            _charts['mohsOneStage'] = new Chart(
+                document.getElementById('mohsOneStageChart').getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels,
+                    datasets: [{
+                        label: '1-Stage %',
+                        data: values,
+                        borderColor: 'rgba(0, 150, 136, 0.9)',
+                        borderWidth: 2,
+                        fill: false,
+                        spanGaps: true,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Year' },
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    const cur = new Date(labels[value] + 'T00:00:00');
+                                    const prev = index > 0 ? new Date(labels[ticks[index - 1]?.value] + 'T00:00:00') : null;
+                                    return (!prev || cur.getFullYear() !== prev.getFullYear()) ? cur.getFullYear() : '';
+                                }
+                            }
+                        },
+                        y: {
+                            min: 0,
+                            max: 100,
+                            ticks: { callback: v => v + '%' }
+                        }
+                    }
+                }
+            });
+        })
+        .catch(e => console.error('1-stage trend chart error:', e));
+}
+
+function loadMohsRepairChart() {
+    const rollingWindow = 200;
+
+    function calcRollingProportions(data, windowSize) {
+        const result = [];
+        for (let i = windowSize - 1; i < data.length; i++) {
+            const slice = data.slice(i - windowSize + 1, i + 1);
+            const counts = {};
+            slice.forEach(item => { counts[item.repair] = (counts[item.repair] || 0) + 1; });
+            const total = slice.length;
+            result.push({
+                date: data[i].date,
+                proportions: Object.fromEntries(
+                    Object.entries(counts).map(([k, v]) => [k, v / total])
+                )
+            });
+        }
+        return result;
     }
+
+    const REPAIR_COLORS = {
+        'CLC':  'rgba(0, 150, 136, 0.9)',
+        'ILC':  'rgba(255, 159, 64, 0.9)',
+        'Flap': 'rgba(54, 162, 235, 0.9)',
+        'FTSG': 'rgba(255, 99, 132, 0.9)',
+        '2nd':  'rgba(153, 102, 255, 0.9)'
+    };
+
+    fetch('get_repair_data.php')
+        .then(r => r.json())
+        .then(data => {
+            const rollingData  = calcRollingProportions(data, rollingWindow);
+            const labels       = rollingData.map(d => d.date);
+            const repairTypes  = [...new Set(data.map(d => d.repair))];
+            const datasets     = repairTypes.map(type => ({
+                label: type,
+                data: rollingData.map(d => d.proportions[type] || 0),
+                borderColor: REPAIR_COLORS[type] || 'rgba(128,128,128,0.9)',
+                borderWidth: 2,
+                fill: false,
+                spanGaps: true,
+                pointRadius: 0
+            }));
+
+            _destroyChart('mohsRepair');
+            _charts['mohsRepair'] = new Chart(
+                document.getElementById('repairChart').getContext('2d'), {
+                type: 'line',
+                data: { labels, datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'top' } },
+                    scales: {
+                        x: {
+                            title: { display: true, text: 'Year' },
+                            ticks: {
+                                callback: function(value, index, ticks) {
+                                    const cur  = new Date(labels[value]);
+                                    const prev = index > 0 ? new Date(labels[ticks[index - 1].value]) : null;
+                                    return (!prev || cur.getFullYear() !== prev.getFullYear()) ? cur.getFullYear() : '';
+                                }
+                            }
+                        },
+                        y: {
+                            title: { display: true, text: 'Proportion' },
+                            min: 0,
+                            max: 1
+                        }
+                    }
+                }
+            });
+        })
+        .catch(e => console.error('Repair chart error:', e));
 }
 
