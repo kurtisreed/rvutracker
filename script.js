@@ -258,6 +258,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(data => {
                 // Stat cards
                 document.getElementById('mohs-card-month-total').textContent = parseFloat(data.this_month_total).toFixed(0);
+                document.getElementById('mohs-card-month-onestage').textContent = parseFloat(data.this_month_onestage).toFixed(1);
                 document.getElementById('mohs-card-year-total').textContent = parseFloat(data.this_year_total).toFixed(0);
                 document.getElementById('mohs-card-alltime-total').textContent = parseFloat(data.all_time_total).toFixed(0);
                 document.getElementById('mohs-card-year-onestage').textContent = parseFloat(data.this_year_onestage).toFixed(1);
