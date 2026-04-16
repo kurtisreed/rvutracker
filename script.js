@@ -1227,9 +1227,12 @@ function loadMohsReferralChart() {
             document.getElementById('mohs-referral-year-label').textContent = thisYear;
             document.getElementById('mohs-referral-lastyear-label').textContent = lastYear;
 
-            const labels       = rows.map(r => r.referral);
-            const thisYearVals = rows.map(r => r.this_year);
-            const lastYearVals = rows.map(r => r.last_year);
+            const labels = rows.map(r => r.referral);
+
+            const thisTotal = rows.reduce((s, r) => s + r.this_year, 0) || 1;
+            const lastTotal = rows.reduce((s, r) => s + r.last_year, 0) || 1;
+            const thisYearVals = rows.map(r => (r.this_year / thisTotal) * 100);
+            const lastYearVals = rows.map(r => (r.last_year / lastTotal) * 100);
 
             _destroyChart('mohsReferral');
             _charts['mohsReferral'] = new Chart(
@@ -1255,8 +1258,20 @@ function loadMohsReferralChart() {
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { position: 'top' } },
-                    scales: { y: { ticks: { stepSize: 1 } } }
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: ctx => ctx.dataset.label + ': ' + ctx.raw.toFixed(1) + '%'
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            max: 100,
+                            ticks: { callback: v => v + '%' }
+                        }
+                    }
                 }
             });
         })
